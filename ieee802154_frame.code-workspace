@@ -1,0 +1,22 @@
+{
+	"folders": [
+		{
+			"name": "ieee802154_frame",
+			"path": "."
+		},
+		{
+			"name": "test_runner",
+			"path": "test_runner"
+		},
+		{
+			"name": "simple_parse",
+			"path": "examples/simple_parse"
+		},
+		{
+			"name": "advanced_usage",
+			"path": "examples/advanced_usage"
+		}
+	],
+	"settings": {
+	}
+}

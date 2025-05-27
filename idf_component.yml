@@ -1,0 +1,11 @@
+name: "ieee802154_frame"
+version: "1.0.0"
+description: "IEEE 802.15.4 frame parser and builder for ESP-IDF"
+dependencies:
+  idf: ">=5.0"
+files:
+   include:
+      - "ieee802154_frame.h"
+      - "ieee802154_frame.c"
+repository: "https://github.com/shoderico/ieee802154_frame.git"
+url: "https://github.com/shoderico/ieee802154_frame"
