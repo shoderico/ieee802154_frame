@@ -8,14 +8,10 @@
 #include <esp_log.h>
 //#include <esp_mac.h>
 
-
-
 #include "ieee802154_frame.h"
 
 // Test case: Parse a valid data frame
 TEST_CASE("Parse a valid data frame", "[valid]") {
-//void test_parse_valid_frame(void) {
-
     uint8_t raw_frame[] = {
         0x41, 0x88, // FCF: Data, short addresses, 2003, PAN ID compression
         0xdb,       // Sequence Number
@@ -39,14 +35,12 @@ TEST_CASE("Parse a valid data frame", "[valid]") {
     TEST_ASSERT_EQUAL(6, frame.payloadLen);
     { uint8_t expected[] = {0xc9, 0x80, 0x00, 0x00, 0x00, 0xb7}; TEST_ASSERT_EQUAL_UINT8_ARRAY(expected, frame.payload, 6); }
     TEST_ASSERT_EQUAL(0xcc, frame.rssi_lqi);
-
+    TEST_ASSERT_EQUAL(2, frame.destAddrLen); // Check destination address length
+    TEST_ASSERT_EQUAL(2, frame.srcAddrLen);  // Check source address length
 }
-
-
 
 // Test case: Parse an invalid frame (too short)
 TEST_CASE("Parse an invalid frame (too short)", "[invalid]") {
-//void test_parse_invalid_frame(void) {
     uint8_t raw_frame[] = {0x41, 0x88}; // Too short
     ieee802154_frame_t frame = {0};
 
@@ -54,23 +48,34 @@ TEST_CASE("Parse an invalid frame (too short)", "[invalid]") {
     TEST_ASSERT_FALSE(result);
 }
 
+// Test case: Parse a frame with no addresses
+TEST_CASE("Parse a frame with no addresses", "[valid]") {
+    uint8_t raw_frame[] = {
+        0x01, 0x00, // FCF: Data, no addresses, 2003
+        0xdb,       // Sequence Number
+        0xc9, 0x80, 0x00, // Payload
+        0xcc        // RSSI/LQI
+    };
+    ieee802154_frame_t frame = {0};
+
+    bool result = ieee802154_frame_parse(raw_frame, sizeof(raw_frame), &frame, false);
+    TEST_ASSERT_TRUE(result);
+    TEST_ASSERT_EQUAL(IEEE802154_FRAME_TYPE_DATA, frame.fcf.frameType);
+    TEST_ASSERT_EQUAL(0xdb, frame.sequenceNumber);
+    TEST_ASSERT_EQUAL(0, frame.destPanId);
+    TEST_ASSERT_EQUAL(0, frame.srcPanId);
+    TEST_ASSERT_EQUAL(3, frame.payloadLen);
+    { uint8_t expected[] = {0xc9, 0x80, 0x00}; TEST_ASSERT_EQUAL_UINT8_ARRAY(expected, frame.payload, 3); }
+    TEST_ASSERT_EQUAL(0xcc, frame.rssi_lqi);
+    TEST_ASSERT_EQUAL(0, frame.destAddrLen); // Check destination address length
+    TEST_ASSERT_EQUAL(0, frame.srcAddrLen);  // Check source address length
+}
 
 // Test case: Build a frame
 TEST_CASE("Build a frame", "[buld]") {
-//void test_build_frame(void) {
     uint8_t buffer[128];
     ieee802154_frame_t tx_frame = {
         .fcf = {
-
-//            .frameType = IEEE802154_FRAME_TYPE_DATA,
-//            .ackRequest = 1,
-//            .destAddrMode = IEEE802154_ADDR_MODE_SHORT,
-//            .srcAddrMode = IEEE802154_ADDR_MODE_SHORT,
-//            .frameVersion = IEEE802154_VERSION_2015,
-//            .panIdCompression = 1,
-//            .sequenceNumberSuppression = 0,
-//            .informationElementsPresent = 0
-
             .frameType = IEEE802154_FRAME_TYPE_DATA, // 001
             .securityEnabled = 0,                    // 0
             .framePending = 0,                       // 0
@@ -107,5 +112,3 @@ TEST_CASE("Build a frame", "[buld]") {
     ESP_LOG_BUFFER_HEX_LEVEL("DUMP", buffer, len, ESP_LOG_INFO);
     TEST_ASSERT_EQUAL_UINT8_ARRAY(expected, buffer, len);
 }
-
-
