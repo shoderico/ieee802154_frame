@@ -5,7 +5,7 @@ dependencies:
   idf: ">=5.0"
 files:
    include:
-      - "ieee802154_frame.h"
-      - "ieee802154_frame.c"
+      - "include/ieee802154_frame.h"
+      - "src/ieee802154_frame.c"
 repository: "https://github.com/shoderico/ieee802154_frame.git"
 url: "https://github.com/shoderico/ieee802154_frame"
