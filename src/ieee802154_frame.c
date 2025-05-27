@@ -185,6 +185,7 @@ bool ieee802154_frame_parse(const uint8_t *data, size_t len, ieee802154_frame_t 
     } else if (frame->fcf.destAddrMode == IEEE802154_ADDR_MODE_EXTENDED) {
         destAddrLen = 8;
     }
+    frame->destAddrLen = destAddrLen; // Set destination address length
     if (destAddrLen > 0) {
         if (offset + destAddrLen > len) {
             ESP_LOGE(TAG, "Frame too short for Destination Address");
@@ -236,6 +237,7 @@ bool ieee802154_frame_parse(const uint8_t *data, size_t len, ieee802154_frame_t 
     } else if (frame->fcf.srcAddrMode == IEEE802154_ADDR_MODE_EXTENDED) {
         srcAddrLen = 8;
     }
+    frame->srcAddrLen = srcAddrLen; // Set source address length
     if (srcAddrLen > 0) {
         if (offset + srcAddrLen > len) {
             ESP_LOGE(TAG, "Frame too short for Source Address");

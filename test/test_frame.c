@@ -35,6 +35,8 @@ TEST_CASE("Parse a valid data frame", "[valid]") {
     TEST_ASSERT_EQUAL(6, frame.payloadLen);
     { uint8_t expected[] = {0xc9, 0x80, 0x00, 0x00, 0x00, 0xb7}; TEST_ASSERT_EQUAL_UINT8_ARRAY(expected, frame.payload, 6); }
     TEST_ASSERT_EQUAL(0xcc, frame.rssi_lqi);
+    TEST_ASSERT_EQUAL(2, frame.destAddrLen); // Check destination address length
+    TEST_ASSERT_EQUAL(2, frame.srcAddrLen);  // Check source address length
 }
 
 // Test case: Parse an invalid frame (too short)
@@ -46,6 +48,28 @@ TEST_CASE("Parse an invalid frame (too short)", "[invalid]") {
     TEST_ASSERT_FALSE(result);
 }
 
+// Test case: Parse a frame with no addresses
+TEST_CASE("Parse a frame with no addresses", "[valid]") {
+    uint8_t raw_frame[] = {
+        0x01, 0x00, // FCF: Data, no addresses, 2003
+        0xdb,       // Sequence Number
+        0xc9, 0x80, 0x00, // Payload
+        0xcc        // RSSI/LQI
+    };
+    ieee802154_frame_t frame = {0};
+
+    bool result = ieee802154_frame_parse(raw_frame, sizeof(raw_frame), &frame, false);
+    TEST_ASSERT_TRUE(result);
+    TEST_ASSERT_EQUAL(IEEE802154_FRAME_TYPE_DATA, frame.fcf.frameType);
+    TEST_ASSERT_EQUAL(0xdb, frame.sequenceNumber);
+    TEST_ASSERT_EQUAL(0, frame.destPanId);
+    TEST_ASSERT_EQUAL(0, frame.srcPanId);
+    TEST_ASSERT_EQUAL(3, frame.payloadLen);
+    { uint8_t expected[] = {0xc9, 0x80, 0x00}; TEST_ASSERT_EQUAL_UINT8_ARRAY(expected, frame.payload, 3); }
+    TEST_ASSERT_EQUAL(0xcc, frame.rssi_lqi);
+    TEST_ASSERT_EQUAL(0, frame.destAddrLen); // Check destination address length
+    TEST_ASSERT_EQUAL(0, frame.srcAddrLen);  // Check source address length
+}
 
 // Test case: Build a frame
 TEST_CASE("Build a frame", "[buld]") {

@@ -53,6 +53,8 @@ typedef struct {
     uint8_t destAddress[8];             // Destination Address (0, 2, or 8 bytes)
     uint16_t srcPanId;                  // Source PAN ID (if present)
     uint8_t srcAddress[8];              // Source Address (0, 2, or 8 bytes)
+    uint8_t destAddrLen;                // Length of destination address
+    uint8_t srcAddrLen;                 // Length of source address
     size_t payloadLen;                  // Length of payload
     uint8_t *payload;                   // Pointer to payload data
     uint8_t rssi_lqi;                   // RSSI and LQI (combined in 1 byte)
