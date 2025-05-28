@@ -71,7 +71,7 @@ ESP_STATIC_ASSERT(sizeof(ieee802154_fcf_t) == IEEE802154_FCF_SIZE, "ieee802154_f
 
 // Public API
 bool ieee802154_frame_parse(const uint8_t *data, size_t len, ieee802154_frame_t *frame, bool verbose);
-size_t ieee802154_frame_build(const ieee802154_frame_t *frame, uint8_t *buffer, size_t buffer_size);
+size_t ieee802154_frame_build(const ieee802154_frame_t *frame, uint8_t *buffer, size_t buffer_size, bool verbose);
 const char* ieee802154_frame_type_to_str(uint8_t frameType);
 
 #endif // IEEE802154_FRAME_H

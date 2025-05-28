@@ -97,7 +97,7 @@ TEST_CASE("Build a frame", "[buld]") {
         .payload = (uint8_t[]){0x44, 0x55, 0x66}
     };
 
-    size_t len = ieee802154_frame_build(&tx_frame, buffer, sizeof(buffer));
+    size_t len = ieee802154_frame_build(&tx_frame, buffer, sizeof(buffer), true);
     TEST_ASSERT_GREATER_THAN(0, len);
     // Expected frame: FCF(2) + Seq(1) + DestPAN(2) + DestAddr(2) + SrcAddr(2) + Payload(3)
     TEST_ASSERT_EQUAL(12, len);

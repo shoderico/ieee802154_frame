@@ -39,7 +39,7 @@ void app_main(void) {
         .payload = (uint8_t[]){0x44, 0x55, 0x66}
     };
 
-    size_t len = ieee802154_frame_build(&tx_frame, buffer, sizeof(buffer));
+    size_t len = ieee802154_frame_build(&tx_frame, buffer, sizeof(buffer), true);
     if (len > 0) {
         ESP_LOGI(TAG, "Built frame of %zu bytes", len);
         ESP_LOG_BUFFER_HEX(TAG, buffer, len);
