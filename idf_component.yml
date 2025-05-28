@@ -1,5 +1,5 @@
 name: "ieee802154_frame"
-version: "1.0.0"
+version: "1.0.2"
 description: "IEEE 802.15.4 frame parser and builder for ESP-IDF"
 dependencies:
   idf: ">=5.0"

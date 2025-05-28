@@ -284,13 +284,15 @@ bool ieee802154_frame_parse(const uint8_t *data, size_t len, ieee802154_frame_t 
 
 // Build IEEE 802.15.4 frame
 // Note: RSSI/LQI are added by hardware on receive, not included in transmit
-size_t ieee802154_frame_build(const ieee802154_frame_t *frame, uint8_t *buffer, size_t buffer_size) {
+size_t ieee802154_frame_build(const ieee802154_frame_t *frame, uint8_t *buffer, size_t buffer_size, bool verbose)
+{
     if (!frame || !buffer) {
         ESP_LOGE(TAG, "Invalid input");
         return 0;
     }
 
-    ESP_LOGI(TAG, "FCF: frameType=%d, securityEnabled=%d, framePending=%d, "
+    
+    if (verbose) ESP_LOGI(TAG, "FCF: frameType=%d, securityEnabled=%d, framePending=%d, "
              "ackRequest=%d, panIdCompression=%d, reserved=%d, "
              "sequenceNumberSuppression=%d, informationElementsPresent=%d, "
              "destAddrMode=%d, frameVersion=%d, srcAddrMode=%d",
@@ -385,7 +387,7 @@ size_t ieee802154_frame_build(const ieee802154_frame_t *frame, uint8_t *buffer, 
         offset += frame->payloadLen;
     }
 
-    ESP_LOGI(TAG, "Built frame of %zu bytes", offset);
+    if (verbose) ESP_LOGI(TAG, "Built frame of %zu bytes", offset);
     return offset;
 }
 
