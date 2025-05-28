@@ -13,17 +13,18 @@
 // Test case: Parse a valid data frame
 TEST_CASE("Parse a valid data frame", "[valid]") {
     uint8_t raw_frame[] = {
+        0x11,       // Length (17 bytes)
         0x41, 0x88, // FCF: Data, short addresses, 2003, PAN ID compression
         0xdb,       // Sequence Number
         0xe7, 0x00, // Dest PAN ID
         0xff, 0xff, // Dest Address
         0x96, 0xf0, // Src Address
         0xc9, 0x80, 0x00, 0x00, 0x00, 0xb7, // Payload
-        0xcc        // RSSI/LQI
+        0x00        // Trailing 0x00
     };
     ieee802154_frame_t frame = {0};
 
-    bool result = ieee802154_frame_parse(raw_frame, sizeof(raw_frame), &frame, false);
+    bool result = ieee802154_frame_parse(raw_frame, &frame, false);
     TEST_ASSERT_TRUE(result);
     TEST_ASSERT_EQUAL(IEEE802154_FRAME_TYPE_DATA, frame.fcf.frameType);
     TEST_ASSERT_EQUAL(0xdb, frame.sequenceNumber);
@@ -32,33 +33,38 @@ TEST_CASE("Parse a valid data frame", "[valid]") {
     { uint8_t expected[] = {0xff, 0xff}; TEST_ASSERT_EQUAL_UINT8_ARRAY(expected, frame.destAddress, 2); }
     TEST_ASSERT_EQUAL(0x00e7, frame.srcPanId); // Compressed
     { uint8_t expected[] = {0x96, 0xf0}; TEST_ASSERT_EQUAL_UINT8_ARRAY(expected, frame.srcAddress, 2); }
+    ESP_LOG_BUFFER_HEX_LEVEL("DUMP", frame.payload, 6, ESP_LOG_INFO);
     TEST_ASSERT_EQUAL(6, frame.payloadLen);
     { uint8_t expected[] = {0xc9, 0x80, 0x00, 0x00, 0x00, 0xb7}; TEST_ASSERT_EQUAL_UINT8_ARRAY(expected, frame.payload, 6); }
-    TEST_ASSERT_EQUAL(0xcc, frame.rssi_lqi);
     TEST_ASSERT_EQUAL(2, frame.destAddrLen); // Check destination address length
     TEST_ASSERT_EQUAL(2, frame.srcAddrLen);  // Check source address length
 }
 
 // Test case: Parse an invalid frame (too short)
 TEST_CASE("Parse an invalid frame (too short)", "[invalid]") {
-    uint8_t raw_frame[] = {0x41, 0x88}; // Too short
+    uint8_t raw_frame[] = {
+        0x03,       // Length (3 bytes)
+        0x41, 0x88, // FCF: Too short for complete frame
+        0x00        // Trailing 0x00
+    };
     ieee802154_frame_t frame = {0};
 
-    bool result = ieee802154_frame_parse(raw_frame, sizeof(raw_frame), &frame, false);
+    bool result = ieee802154_frame_parse(raw_frame, &frame, false);
     TEST_ASSERT_FALSE(result);
 }
 
 // Test case: Parse a frame with no addresses
 TEST_CASE("Parse a frame with no addresses", "[valid]") {
     uint8_t raw_frame[] = {
+        0x08,       // Length (8 bytes)
         0x01, 0x00, // FCF: Data, no addresses, 2003
         0xdb,       // Sequence Number
         0xc9, 0x80, 0x00, // Payload
-        0xcc        // RSSI/LQI
+        0x00        // Trailing 0x00
     };
     ieee802154_frame_t frame = {0};
 
-    bool result = ieee802154_frame_parse(raw_frame, sizeof(raw_frame), &frame, false);
+    bool result = ieee802154_frame_parse(raw_frame, &frame, false);
     TEST_ASSERT_TRUE(result);
     TEST_ASSERT_EQUAL(IEEE802154_FRAME_TYPE_DATA, frame.fcf.frameType);
     TEST_ASSERT_EQUAL(0xdb, frame.sequenceNumber);
@@ -66,13 +72,12 @@ TEST_CASE("Parse a frame with no addresses", "[valid]") {
     TEST_ASSERT_EQUAL(0, frame.srcPanId);
     TEST_ASSERT_EQUAL(3, frame.payloadLen);
     { uint8_t expected[] = {0xc9, 0x80, 0x00}; TEST_ASSERT_EQUAL_UINT8_ARRAY(expected, frame.payload, 3); }
-    TEST_ASSERT_EQUAL(0xcc, frame.rssi_lqi);
     TEST_ASSERT_EQUAL(0, frame.destAddrLen); // Check destination address length
     TEST_ASSERT_EQUAL(0, frame.srcAddrLen);  // Check source address length
 }
 
 // Test case: Build a frame
-TEST_CASE("Build a frame", "[buld]") {
+TEST_CASE("Build a frame", "[build]") {
     uint8_t buffer[128];
     ieee802154_frame_t tx_frame = {
         .fcf = {
@@ -97,17 +102,19 @@ TEST_CASE("Build a frame", "[buld]") {
         .payload = (uint8_t[]){0x44, 0x55, 0x66}
     };
 
-    size_t len = ieee802154_frame_build(&tx_frame, buffer, sizeof(buffer), true);
+    size_t len = ieee802154_frame_build(&tx_frame, buffer, true);
     TEST_ASSERT_GREATER_THAN(0, len);
-    // Expected frame: FCF(2) + Seq(1) + DestPAN(2) + DestAddr(2) + SrcAddr(2) + Payload(3)
-    TEST_ASSERT_EQUAL(12, len);
+    // Expected frame: Length(1) + FCF(2) + Seq(1) + DestPAN(2) + DestAddr(2) + SrcAddr(2) + Payload(3) + 0x00(1)
+    TEST_ASSERT_EQUAL(14, len);
     uint8_t expected[] = {
-        0x61, 0x98, // FCF: Data, ACK, short addresses, 2015, PAN ID compression
+        0x0e,       // Length (14 bytes)
+        0x61, 0x98, // FCF: Data, ACK, short addresses, 2006, PAN ID compression
         0x02,       // Sequence Number
         0x34, 0x12, // Dest PAN ID
         0x56, 0x78, // Dest Address
         0x9A, 0xBC, // Src Address
-        0x44, 0x55, 0x66 // Payload
+        0x44, 0x55, 0x66, // Payload
+        0x00        // Trailing 0x00
     };
     ESP_LOG_BUFFER_HEX_LEVEL("DUMP", buffer, len, ESP_LOG_INFO);
     TEST_ASSERT_EQUAL_UINT8_ARRAY(expected, buffer, len);
