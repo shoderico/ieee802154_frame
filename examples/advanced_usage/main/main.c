@@ -7,12 +7,18 @@ static const char *TAG = "EXAMPLE";
 void app_main(void) {
     // Parse an example frame
     uint8_t raw_frame[] = {
-        0x41, 0x88, 0xdc, 0xe7, 0x00, 0xff, 0xff, 0x96, 0xf0,
-        0xc9, 0x80, 0x00, 0x00, 0x00, 0xb7, 0xcc
+        0x11,       // Length (17 bytes)
+        0x41, 0x88, // FCF
+        0xdb,       // Sequence No.
+        0xe7, 0x00, // Dest PAN ID
+        0xff, 0xff, // Dest Address
+        0x96, 0xf0, // Src Address
+        0xc9, 0x80, 0x00, 0x00, 0x00, 0xb7, // Payload
+        0x00        // Trailing 0x00
     };
     ieee802154_frame_t frame = {0};
 
-    if (ieee802154_frame_parse(raw_frame, sizeof(raw_frame), &frame, true)) {
+    if (ieee802154_frame_parse(raw_frame, &frame, true)) {
         ESP_LOGI(TAG, "Parsed frame: type=%s, RSSI/LQI=0x%02x",
                  ieee802154_frame_type_to_str(frame.fcf.frameType), frame.rssi_lqi);
     } else {
@@ -35,11 +41,11 @@ void app_main(void) {
         .destAddress = {0x56, 0x78},
         .srcPanId = 0x1234,
         .srcAddress = {0x9A, 0xBC},
-        .payloadLen = 3,
-        .payload = (uint8_t[]){0x44, 0x55, 0x66}
+        .payloadLen = 6,
+        .payload = (uint8_t[]){0x44, 0x55, 0x66, 0x77, 0x88, 0x99}
     };
 
-    size_t len = ieee802154_frame_build(&tx_frame, buffer, sizeof(buffer), true);
+    size_t len = ieee802154_frame_build(&tx_frame, buffer, true);
     if (len > 0) {
         ESP_LOGI(TAG, "Built frame of %zu bytes", len);
         ESP_LOG_BUFFER_HEX(TAG, buffer, len);
